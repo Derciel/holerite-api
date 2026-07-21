@@ -3,7 +3,7 @@ services:
     name: holerite-api
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install --legacy-peer-deps
     startCommand: npx ts-node server/index.ts
     envVars:
       - key: NODE_ENV

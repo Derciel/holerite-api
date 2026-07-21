@@ -35,7 +35,7 @@
   },
   "scripts": {
     "start": "npx ts-node server/index.ts",
-    "build": "npm install",
+    "build": "npm install --legacy-peer-deps",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
