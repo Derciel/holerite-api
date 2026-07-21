@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Sharing from 'expo-sharing';
-import { useAuth } from '../../src/lib/AuthContext';
+import { downloadHolerite } from '../../src/services/holeriteService';
 import { TIPO_LABELS, TIPO_COLORS, HoleriteTipo } from '../../src/types/holerite';
 
 export default function HoleriteDetailScreen() {
@@ -15,7 +15,6 @@ export default function HoleriteDetailScreen() {
   }>();
 
   const router = useRouter();
-  const { userId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,22 +22,16 @@ export default function HoleriteDetailScreen() {
   const tipoColor = TIPO_COLORS[tipo as HoleriteTipo] || '#888';
 
   async function handleView() {
-    if (!id || !userId) return;
+    if (!id) return;
     setLoading(true);
     setError(null);
 
     try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/portal/download/${id}?user_id=${userId}`);
-
-      if (!response.ok) {
+      const url = await downloadHolerite(Number(id));
+      if (!url) {
         setError('PDF não disponível');
         return;
       }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(url);
       } else {
@@ -52,22 +45,16 @@ export default function HoleriteDetailScreen() {
   }
 
   async function handleShare() {
-    if (!id || !userId) return;
+    if (!id) return;
     setLoading(true);
     setError(null);
 
     try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/portal/download/${id}?user_id=${userId}`);
-
-      if (!response.ok) {
+      const url = await downloadHolerite(Number(id));
+      if (!url) {
         setError('PDF não disponível');
         return;
       }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
       await Sharing.shareAsync(url);
     } catch {
       setError('Erro ao compartilhar.');
@@ -125,87 +112,32 @@ export default function HoleriteDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0A0A',
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  backButton: {
-    paddingVertical: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: '#00C19C',
-    fontWeight: '500',
-  },
+  container: { flex: 1, backgroundColor: '#0A0A0A' },
+  header: { paddingTop: 60, paddingHorizontal: 16, paddingBottom: 8 },
+  backButton: { paddingVertical: 8 },
+  backText: { fontSize: 16, color: '#00C19C', fontWeight: '500' },
   content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 80,
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 24, paddingBottom: 80,
   },
   iconLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+    width: 80, height: 80, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 20,
   },
-  iconEmoji: {
-    fontSize: 36,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  competencia: {
-    fontSize: 16,
-    color: '#888',
-    marginBottom: 24,
-  },
-  error: {
-    fontSize: 14,
-    color: '#FF5050',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  actions: {
-    width: '100%',
-    gap: 12,
-  },
+  iconEmoji: { fontSize: 36 },
+  title: { fontSize: 24, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
+  competencia: { fontSize: 16, color: '#888', marginBottom: 24 },
+  error: { fontSize: 14, color: '#FF5050', marginBottom: 16, textAlign: 'center' },
+  actions: { width: '100%', gap: 12 },
   primaryButton: {
-    width: '100%',
-    height: 52,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: '100%', height: 52, borderRadius: 12,
+    justifyContent: 'center', alignItems: 'center',
   },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
+  primaryButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   secondaryButton: {
-    width: '100%',
-    height: 52,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    width: '100%', height: 52, backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
   },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
+  secondaryButtonText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
 });

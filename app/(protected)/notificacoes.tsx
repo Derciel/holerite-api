@@ -1,27 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../src/lib/AuthContext';
 import { fetchNotificacoes, markAllRead } from '../../src/services/holeriteService';
 import { Notificacao } from '../../src/types/holerite';
 
 export default function NotificacoesScreen() {
   const router = useRouter();
-  const { userId } = useAuth();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
-    if (!userId) return;
-    const data = await fetchNotificacoes(String(userId));
+    const data = await fetchNotificacoes();
     setNotificacoes(data);
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
-  }, [userId]);
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -30,8 +27,7 @@ export default function NotificacoesScreen() {
   };
 
   const handleMarkAllRead = async () => {
-    if (!userId) return;
-    await markAllRead(String(userId));
+    await markAllRead();
     setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })));
   };
 
@@ -52,7 +48,6 @@ export default function NotificacoesScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
@@ -70,7 +65,6 @@ export default function NotificacoesScreen() {
         )}
       </View>
 
-      {/* Lista */}
       {loading ? (
         <ActivityIndicator size="large" color="#00C19C" style={styles.loader} />
       ) : (
@@ -83,7 +77,7 @@ export default function NotificacoesScreen() {
               <View style={styles.notifContent}>
                 <Text style={styles.notifTitle}>{item.titulo}</Text>
                 <Text style={styles.notifMessage}>{item.mensagem}</Text>
-                <Text style={styles.notifDate}>{formatData(item.data_criacao)}</Text>
+                <Text style={styles.notifDate}>{item.data_criacao}</Text>
               </View>
             </View>
           )}

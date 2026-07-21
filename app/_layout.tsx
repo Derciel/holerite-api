@@ -1,8 +1,35 @@
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AuthProvider, useAuth } from '../src/lib/AuthContext';
+import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
+import * as SecureStore from 'expo-secure-store';
+
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return await SecureStore.setItemAsync(key, value);
+    } catch {
+      return;
+    }
+  },
+  async deleteToken(key: string) {
+    try {
+      return await SecureStore.deleteItemAsync(key);
+    } catch {
+      return;
+    }
+  },
+};
 
 function RootLayoutNav() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -38,11 +65,21 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  if (!CLERK_PUBLISHABLE_KEY) {
+    return (
+      <View style={styles.loading}>
+        <Text style={styles.errorText}>
+          Configure EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY no .env
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <AuthProvider>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <RootLayoutNav />
       <StatusBar style="dark" />
-    </AuthProvider>
+    </ClerkProvider>
   );
 }
 
@@ -52,5 +89,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0A0A0A',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    padding: 20,
   },
 });

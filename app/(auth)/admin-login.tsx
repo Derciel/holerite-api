@@ -1,38 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useOAuth, useSignIn } from '@clerk/clerk-expo';
-import * as WebBrowser from 'expo-web-browser';
+import { useSignIn } from '@clerk/clerk-expo';
 
-WebBrowser.maybeCompleteAuthSession();
-
-export default function LoginScreen() {
+export default function AdminLoginScreen() {
   const router = useRouter();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
   const { signIn, setActive } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow();
-      if (createdSessionId) {
-        await setActiveSession!({ session: createdSessionId });
-        router.replace('/(protected)');
-      }
-    } catch (err: any) {
-      console.error('Erro no login:', err);
-      setError('Não foi possível fazer login com Google');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailLogin = async () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       setError('Preencha email e senha');
       return;
@@ -46,11 +25,11 @@ export default function LoginScreen() {
       });
       if (result.status === 'complete') {
         await setActive!({ session: result.createdSessionId });
-        router.replace('/(protected)');
+        router.replace('/(protected)/admin');
       }
     } catch (err: any) {
-      console.error('Erro no login:', err);
-      setError(err.errors?.[0]?.message || 'Email ou senha incorretos');
+      console.error('Erro no login admin:', err);
+      setError(err.errors?.[0]?.message || 'Credenciais inválidas');
     } finally {
       setLoading(false);
     }
@@ -62,37 +41,24 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backText}>← Voltar</Text>
+        </TouchableOpacity>
+
         <View style={styles.header}>
-          <Text style={styles.brand}>Holerites</Text>
-          <Text style={styles.brandSub}>para Você</Text>
+          <View style={styles.iconContainer}>
+            <Text style={styles.icon}>⚙</Text>
+          </View>
+          <Text style={styles.brand}>Painel Admin</Text>
+          <Text style={styles.subtitle}>Acesso administrativo</Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.title}>Acesse sua conta</Text>
-          <Text style={styles.subtitle}>Portal do Colaborador</Text>
-
-          <TouchableOpacity
-            style={styles.googleButton}
-            onPress={handleGoogleLogin}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.googleButtonText}>
-              {loading ? 'Entrando...' : 'Entrar com Google'}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ou</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="seu@email.com"
+              placeholder="admin@empresa.com"
               placeholderTextColor="#666"
               value={email}
               onChangeText={setEmail}
@@ -121,25 +87,18 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={handleEmailLogin}
+            onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.8}
           >
             <Text style={styles.loginButtonText}>
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Entrando...' : 'Entrar como Admin'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.adminLink}
-          onPress={() => router.push('/(auth)/admin-login')}
-        >
-          <Text style={styles.adminLinkText}>Acesso Admin</Text>
-        </TouchableOpacity>
-
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Portal do Colaborador</Text>
+          <Text style={styles.footerText}>Sistema de Holerites v2.0</Text>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -158,21 +117,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 24,
   },
+  backBtn: {
+    position: 'absolute',
+    top: 60,
+    left: 24,
+  },
+  backText: {
+    color: '#00C19C',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   header: {
     alignItems: 'center',
   },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  icon: {
+    fontSize: 28,
+    color: '#00C19C',
+  },
   brand: {
-    fontSize: 40,
+    fontSize: 28,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -1.5,
   },
-  brandSub: {
-    fontSize: 40,
-    fontWeight: '300',
-    color: '#FFFFFF',
-    opacity: 0.8,
-    marginTop: -8,
+  subtitle: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 4,
   },
   card: {
     width: '100%',
@@ -183,48 +162,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.07)',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  googleButton: {
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  googleButtonText: {
-    color: '#000000',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  dividerText: {
-    color: '#666',
-    marginHorizontal: 12,
-    fontSize: 12,
-  },
   inputGroup: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   label: {
     fontSize: 12,
@@ -257,23 +196,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loginButton: {
-    backgroundColor: '#00C19C',
+    backgroundColor: '#FF5050',
     padding: 15,
     borderRadius: 12,
     alignItems: 'center',
   },
   loginButtonText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
-  },
-  adminLink: {
-    paddingVertical: 10,
-  },
-  adminLinkText: {
-    color: '#00C19C',
-    fontSize: 14,
-    fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
