@@ -35,13 +35,13 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "tsx server/index.ts",
+    "start": "npx tsx server/index.ts",
     "build": "npm install --legacy-peer-deps",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "server": "tsx server/index.ts",
-    "server:dev": "tsx watch server/index.ts"
+    "server": "npx tsx server/index.ts",
+    "server:dev": "npx tsx watch server/index.ts"
   },
   "private": true
 }
