@@ -24,7 +24,8 @@
     "react-native-gesture-handler": "~2.32.0",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
-    "react-native-url-polyfill": "^4.0.0"
+    "react-native-url-polyfill": "^4.0.0",
+    "tsx": "^4.7.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -34,13 +35,13 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "npx ts-node server/index.ts",
+    "start": "tsx server/index.ts",
     "build": "npm install --legacy-peer-deps",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "server": "npx ts-node server/index.ts",
-    "server:dev": "npx ts-node-dev server/index.ts"
+    "server": "tsx server/index.ts",
+    "server:dev": "tsx watch server/index.ts"
   },
   "private": true
 }
